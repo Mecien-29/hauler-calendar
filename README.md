@@ -24,19 +24,21 @@ Do this on a computer, at calendar.google.com.
 1. Right-click `#hauler-schedule` → **Edit Channel** → **Integrations** → **Webhooks** → **New Webhook**.
 2. Name it `Hauler Schedule`, then click **Copy Webhook URL**.
 
-### 3. GitHub: add the two secrets
+### 3. GitHub: add the secrets (one per truck)
 In this repo: **Settings** → **Secrets and variables** → **Actions** → **New repository secret**.
 
 | Name | Value |
 |---|---|
-| `CALENDARS` | `Hauler 1 \| <secret iCal address from step 1>` |
-| `WEBHOOK_URL` | the webhook URL from step 2 |
+| `WEBHOOK_URL` | the Discord webhook URL from step 2 |
+| `CALENDAR_TRUCK25` | Truck25's secret iCal address from step 1 |
+| `CALENDAR_TRUCK31` | Truck31's secret iCal address, and so on |
 
-Got more than one truck? Put each one on its own line in `CALENDARS`. You can also add a color:
-```
-Hauler 1 | https://calendar.google.com/calendar/ical/.../basic.ics
-Hauler 2 | https://calendar.google.com/calendar/ical/.../basic.ics | #8E24AA
-```
+**Adding a truck = adding one secret** named `CALENDAR_` + the truck's name. You never touch the other trucks.
+The part after `CALENDAR_` becomes the label (`CALENDAR_BIG_RED` shows as "Big Red").
+Want a specific color? Set the value to `Big Red | <link> | #D50000`.
+**Removing a truck = deleting its secret.**
+
+(The older single `CALENDARS` secret with one truck per line still works too, and both get combined.)
 
 ### 4. Run it the first time
 **Actions** tab → **Update hauler calendar** → **Run workflow**. After about a minute, both messages appear in Discord.

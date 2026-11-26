@@ -41,6 +41,7 @@ jobs:
       - name: Draw calendar and update Discord
         env:
           CALENDARS: ${{ secrets.CALENDARS }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}   # picks up every CALENDAR_<TRUCK> secret
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
           MONTHS: ${{ vars.MONTHS || '3' }}
           TIMEZONE: ${{ vars.TIMEZONE || 'America/Los_Angeles' }}

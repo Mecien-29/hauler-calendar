@@ -439,6 +439,38 @@ def parse_calendars(raw: str) -> list[dict]:
     return cals
 
 
+def collect_calendars() -> list[dict]:
+    """
+    Trucks come from two places (both optional, combined):
+      1. One secret per truck named CALENDAR_<NAME>, e.g. CALENDAR_TRUCK25.
+         Value is just the secret iCal link (or "Name | link | #color").
+      2. The older multi-line CALENDARS secret.
+    """
+    lines = [l for l in os.environ.get("CALENDARS", "").splitlines() if l.strip()]
+    try:
+        secrets = json.loads(os.environ.get("ALL_SECRETS") or "{}")
+    except ValueError:
+        secrets = {}
+    for key in sorted(secrets):
+        if not key.upper().startswith("CALENDAR_"):
+            continue
+        value = str(secrets[key] or "").strip()
+        if not value:
+            continue
+        if "|" in value:
+            lines.append(value.splitlines()[0])
+        else:
+            name = key[len("CALENDAR_"):].replace("_", " ").title()
+            lines.append(f"{name} | {value}")
+    seen, unique = set(), []
+    for l in lines:
+        url = l.split("|")[1].strip() if "|" in l else l.strip()
+        if url not in seen:
+            seen.add(url)
+            unique.append(l)
+    return parse_calendars("\n".join(unique))
+
+
 def add_months(y: int, m: int, n: int) -> tuple[int, int]:
     m0 = m - 1 + n
     return y + m0 // 12, m0 % 12 + 1
@@ -532,9 +564,9 @@ def main() -> None:
                  "fill": PALETTE[i % len(PALETTE)][0], "text": PALETTE[i % len(PALETTE)][1]}
                 for i, p in enumerate(args.ics)]
     else:
-        cals = parse_calendars(os.environ.get("CALENDARS", ""))
+        cals = collect_calendars()
     if not cals:
-        sys.exit("No calendars configured. Set the CALENDARS secret (see README).")
+        sys.exit("No trucks configured. Add a secret named CALENDAR_<TRUCKNAME> (e.g. CALENDAR_TRUCK25) whose value is that truck calendar's secret iCal link.")
 
     first = dt.date(today.year, today.month, 1)
     ly, lm = add_months(today.year, today.month, months)
