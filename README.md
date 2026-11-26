@@ -4,7 +4,7 @@ Shows your Google Calendar car-hauler trips inside Discord, with multi-day trips
 
 - **Message 1:** this month, shown big.
 - **Message 2:** the next two months, blurred until someone taps them.
-- Updates itself every hour. You only ever book trips in Google Calendar.
+- Updates itself every 3 hours. You only ever book trips in Google Calendar.
 - Costs nothing. It runs on GitHub's free scheduled jobs and posts through a Discord webhook (no bot to host).
 
 ---
@@ -50,7 +50,7 @@ In Discord, pin the first message. If you set `#hauler-schedule` so only admins 
 
 ## Day to day
 - **Book a trip:** in Google Calendar, check **All day** and set the start and end dates to cover the whole run, including the drive home. That's what makes it show as a solid block.
-- **Need it updated right now?** Actions → Run workflow. Otherwise it updates within the hour.
+- **Need it updated right now?** Actions → Run workflow. Otherwise it updates within 3 hours.
 - **Want 1, 2 or up to 6 months?** Settings → Secrets and variables → Actions → **Variables** tab → add `MONTHS` = `2` (or whatever you want). This month always shows big, and the rest go into the tap-to-open message.
 
 ## Good to know
