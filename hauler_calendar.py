@@ -546,11 +546,23 @@ def main() -> None:
         if args.ics:
             text = Path(c["url"]).read_text(encoding="utf-8")
         else:
-            r = requests.get(c["url"], timeout=30)
+            url = c["url"].strip().strip('"').strip("'")
+            if url.startswith("webcal://"):
+                url = "https://" + url[len("webcal://"):]
+            if not url.startswith("http"):
+                sys.exit(f"Calendar '{c['name']}' doesn't look like a link: {url[:40]!r}. "
+                         "Each CALENDARS line should be:  Name | https://calendar.google.com/...basic.ics")
+            try:
+                r = requests.get(url, timeout=30)
+            except requests.RequestException as ex:
+                sys.exit(f"Could not reach calendar '{c['name']}': {ex}")
             if r.status_code != 200:
                 sys.exit(f"Could not download calendar '{c['name']}' (HTTP {r.status_code}). "
                          "Check the secret iCal address in the CALENDARS secret.")
             text = r.content.decode("utf-8", errors="replace")
+            if "BEGIN:VCALENDAR" not in text:
+                sys.exit(f"The link for '{c['name']}' isn't a calendar feed. Use the "
+                         "'Secret address in iCal format' (ends in basic.ics), not the public/embed link.")
         found = parse_ics(text, i, tz, win_start, win_end)
         print(f"{c['name']}: {len(found)} trip(s) in range")
         trips += found
@@ -573,4 +585,20 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit as e:
+        if isinstance(e.code, str):  # our own friendly error messages
+            print(f"::error::{e.code}" if os.environ.get("GITHUB_ACTIONS") else e.code, file=sys.stderr)
+            sys.exit(1)
+        raise
+    except requests.HTTPError as e:
+        r = e.response
+        msg = f"Discord said HTTP {r.status_code}: {r.text[:300]}"
+        if r.status_code in (401, 404):
+            msg += " -> the WEBHOOK_URL secret is wrong or the webhook was deleted. Copy it again from Discord."
+        print(f"::error::{msg}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"::error::{type(e).__name__}: {e}", file=sys.stderr)
+        raise
