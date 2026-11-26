@@ -1,0 +1,50 @@
+name: Update hauler calendar
+
+on:
+  schedule:
+    - cron: "17 * * * *"   # every hour (GitHub may run it a few minutes late)
+  workflow_dispatch:        # "Run workflow" button for an instant update
+
+permissions:
+  contents: write           # lets it save which Discord messages to edit (state.json)
+
+concurrency:
+  group: hauler-calendar
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          pip install -r requirements.txt
+          if ! fc-list | grep -qi "DejaVu Sans"; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq fonts-dejavu-core
+          fi
+
+      - name: Draw calendar and update Discord
+        env:
+          CALENDARS: ${{ secrets.CALENDARS }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          MONTHS: ${{ vars.MONTHS || '3' }}
+          TIMEZONE: ${{ vars.TIMEZONE || 'America/Los_Angeles' }}
+        run: python hauler_calendar.py
+
+      - name: Remember Discord message IDs
+        run: |
+          if [ -n "$(git status --porcelain state.json)" ]; then
+            git config user.name "hauler-calendar-bot"
+            git config user.email "hauler-calendar-bot@users.noreply.github.com"
+            git add state.json
+            git commit -m "Save Discord message IDs"
+            git push
+          fi
