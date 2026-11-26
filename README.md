@@ -53,7 +53,7 @@ In Discord, pin the first message. If you set `#hauler-schedule` so only admins 
 
 ## Good to know
 - Keep this repo **private**. Running hourly uses about 720 of the 2,000 free GitHub Actions minutes a private account gets each month. If your other project uses a lot, change `17 * * * *` in `.github/workflows/update-calendar.yml` to `17 */2 * * *` to run every 2 hours.
-- `state.json` just stores the IDs of the two Discord messages so they get edited instead of reposted. If you delete them in Discord, the next run posts fresh ones on its own.
+- The IDs of the two Discord messages are kept in GitHub's Actions cache (not in the repo), so they get edited instead of reposted. If you delete them in Discord, the next run posts fresh ones on its own.
 - Header shows **days booked per truck** each month. That's your utilization number.
 
 ## Preview locally (optional)
